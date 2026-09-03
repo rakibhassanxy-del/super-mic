@@ -3,104 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Typing - Pro Mic</title>
-    <!-- MQTT Protocol Library -->
+    <title>Super Typing - AI Mic</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0F172A; color: white; text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
-        h2 { color: #F59E0B; margin-bottom: 5px; font-weight: 700; }
-        p { color: #94A3B8; font-size: 13px; margin-bottom: 30px; }
-        .btn { background: #059669; color: white; border: 3px solid #10B981; padding: 20px; font-size: 35px; border-radius: 50%; width: 120px; height: 120px; cursor: pointer; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.5); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
-        .btn.recording { background: #EF4444; border-color: #F87171; animation: pulse 1.5s infinite; box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.5); }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); } }
-        .status { margin-top: 25px; font-size: 18px; color: #FCD34D; font-weight: 600; }
-        .text-out { margin-top: 25px; font-size: 16px; color: #E2E8F0; min-height: 60px; padding: 15px; border: 1px dashed #475569; border-radius: 12px; background: #1E293B; }
-        .connected { color: #10B981; font-size: 14px; font-weight: bold; margin-bottom: 20px; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 20px; display: inline-block; }
-        .disconnected { color: #EF4444; font-size: 14px; font-weight: bold; margin-bottom: 20px; background: rgba(239, 68, 68, 0.1); padding: 8px; border-radius: 20px; display: inline-block; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #F8FAFC; color: #0F172A; text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
+        h2 { color: #0284C7; margin-bottom: 5px; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
+        p { color: #64748B; font-size: 14px; margin-bottom: 50px; font-weight: 500; }
+        
+        .btn-wrapper { position: relative; width: 150px; height: 150px; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
+        .btn { background: #FFFFFF; color: #0F172A; border: none; font-size: 50px; border-radius: 50%; width: 120px; height: 120px; cursor: pointer; position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; }
+        
+        /* Premium Listening Pulse */
+        .btn.recording { background: #EF4444; border: none; transform: scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4); }
+        .btn-wrapper.recording::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.3); animation: ripple 1.5s infinite ease-out; z-index: 1; }
+        .btn-wrapper.recording::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.15); animation: ripple 1.5s infinite ease-out 0.75s; z-index: 1; }
+        
+        /* Premium Processing State */
+        .btn.processing { background: #0EA5E9; transform: scale(1); border: none; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4); animation: breathe 1.5s infinite ease-in-out; }
+        
+        @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .status { margin-top: 40px; font-size: 16px; color: #475569; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s; height: 24px; }
+        .text-out { margin-top: 30px; font-size: 18px; color: #1E293B; min-height: 80px; padding: 20px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; transition: all 0.3s; }
+        .badge { font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 30px; }
+        .connected { color: #059669; background: #D1FAE5; border: 1px solid #A7F3D0; }
+        .disconnected { color: #DC2626; background: #FEE2E2; border: 1px solid #FECACA; }
     </style>
 </head>
 <body>
+    <div id="connStatus" class="badge disconnected">🔴 Connecting to PC...</div>
     <h2>⚡ Super Typing</h2>
-    <p>Premium Wireless Microphone</p>
+    <p>AI Cloud Microphone</p>
     
-    <div id="connStatus" class="disconnected">🔴 পিসির সাথে কানেক্ট হচ্ছে...</div>
-    
-    <button class="btn" id="talkBtn" onclick="toggleRecord()">🎙️</button>
-    <div class="status" id="stat">মাইক অন করতে ট্যাপ করুন</div>
-    <div class="text-out" id="textOut">আপনার কথা এখানে লাইভ টাইপ হবে...</div>
+    <div class="btn-wrapper" id="micWrapper">
+        <button class="btn" id="talkBtn" onclick="toggleRecord()">🎙️</button>
+    </div>
+    <div class="status" id="stat">Tap to start speaking</div>
+    <div class="text-out" id="textOut">Super AI will type your voice here...</div>
 
     <script>
-        // URL থেকে পিসির সিক্রেট সেশন আইডি নেওয়া
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session');
-        
         if(!sessionId) {
-            document.getElementById('connStatus').innerText = "⚠️ ইনভ্যালিড! পিসির QR Code স্ক্যান করে ঢুকুন।";
-            document.getElementById('connStatus').className = 'disconnected';
+            document.getElementById('connStatus').innerText = "⚠️ Invalid Session! Scan PC QR Code.";
+            document.getElementById('connStatus').className = 'badge disconnected';
         }
 
-        // ফ্রি ক্লাউড MQTT ব্রোকারের সাথে কানেকশন
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         const topic = 'supertyping/mic/' + sessionId;
 
         client.on('connect', function () {
             if(sessionId) {
-                document.getElementById('connStatus').className = 'connected';
-                document.getElementById('connStatus').innerText = "🟢 পিসির সাথে কানেক্টেড (Secure)";
+                document.getElementById('connStatus').className = 'badge connected';
+                document.getElementById('connStatus').innerText = "🟢 Connected to PC";
             }
         });
 
         let recognition;
         let isRec = false;
-        let final_transcript = '';
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRec();
             recognition.continuous = true; 
-            recognition.interimResults = true; // লাইভ টাইপিংয়ের জন্য
+            recognition.interimResults = true;
             recognition.lang = 'bn-BD';
 
             recognition.onresult = function(e) {
                 let interim_transcript = '';
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
                     if (e.results[i].isFinal) {
-                        final_transcript = e.results[i][0].transcript;
-                        // কথা শেষ হলে পিসিতে ডাটা পাঠানো
-                        client.publish(topic, JSON.stringify({ type: 'final', text: final_transcript }));
-                        document.getElementById('textOut').innerText = final_transcript;
-                        final_transcript = ''; 
+                        let final_txt = e.results[i][0].transcript;
+                        setProcessingState();
+                        client.publish(topic, JSON.stringify({ type: 'final', text: final_txt, msg_id: Date.now() }));
+                        document.getElementById('textOut').innerText = final_txt;
+                        setTimeout(stopRec, 1200);
                     } else {
                         interim_transcript += e.results[i][0].transcript;
                         document.getElementById('textOut').innerText = interim_transcript;
                     }
                 }
             };
+            recognition.onerror = function() { stopRec(); };
+        }
 
-            recognition.onerror = function(e) {
-                document.getElementById('stat').innerText = "⚠️ Error: মাইক পারমিশন দিন!";
-                stopRec();
-            };
-        } else {
-            document.getElementById('stat').innerText = "⚠️ আপনার ব্রাউজারে মাইক সাপোর্ট নেই।";
+        function setProcessingState() {
+            try { recognition.stop(); } catch(e){}
+            document.getElementById('talkBtn').className = 'btn processing';
+            document.getElementById('talkBtn').innerText = '⏳';
+            document.getElementById('micWrapper').className = 'btn-wrapper';
+            document.getElementById('stat').innerText = "⚙️ Super AI is typing...";
+            document.getElementById('stat').style.color = "#0284C7";
         }
 
         function toggleRecord() {
-            if (!sessionId) { alert("পিসির QR Code স্ক্যান করে ঢুকুন!"); return; }
+            if (!sessionId) { alert("Please scan the QR code from PC!"); return; }
             if (!isRec) {
                 try { recognition.start(); } catch(e){}
-                document.getElementById('talkBtn').classList.add('recording');
-                document.getElementById('stat').innerText = 'শুনছি... কথা বলুন';
+                document.getElementById('talkBtn').className = 'btn recording';
+                document.getElementById('talkBtn').innerText = '🎙️';
+                document.getElementById('micWrapper').className = 'btn-wrapper recording';
+                document.getElementById('stat').innerText = '✨ Listening...';
+                document.getElementById('stat').style.color = "#EF4444";
+                document.getElementById('textOut').innerText = '...';
                 isRec = true;
             } else {
-                stopRec();
+                setProcessingState();
+                setTimeout(stopRec, 1000); // Simulate processing empty cancel
             }
         }
         
         function stopRec() {
-            try { recognition.stop(); } catch(e){}
-            document.getElementById('talkBtn').classList.remove('recording');
-            document.getElementById('stat').innerText = 'মাইক অফ আছে';
+            document.getElementById('talkBtn').className = 'btn';
+            document.getElementById('talkBtn').innerText = '🎙️';
+            document.getElementById('micWrapper').className = 'btn-wrapper';
+            document.getElementById('stat').innerText = 'Tap to start speaking';
+            document.getElementById('stat').style.color = "#475569";
             isRec = false;
         }
     </script>
