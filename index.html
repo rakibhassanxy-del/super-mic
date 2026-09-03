@@ -3,41 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Typing - AI Mic</title>
+    <title>Super Typing - Premium Cloud Mic</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #F8FAFC; color: #0F172A; text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
-        h2 { color: #0284C7; margin-bottom: 5px; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
-        p { color: #64748B; font-size: 14px; margin-bottom: 50px; font-weight: 500; }
+        /* Glassy Premium Light Theme */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F1F5F9; color: #0F172A; text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
+        h2 { color: #0F172A; margin-bottom: 5px; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
+        p { color: #64748B; font-size: 15px; margin-bottom: 60px; font-weight: 500; }
         
-        .btn-wrapper { position: relative; width: 150px; height: 150px; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
-        .btn { background: #FFFFFF; color: #0F172A; border: none; font-size: 50px; border-radius: 50%; width: 120px; height: 120px; cursor: pointer; position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; }
+        .btn-wrapper { position: relative; width: 140px; height: 140px; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
         
-        /* Premium Listening Pulse */
-        .btn.recording { background: #EF4444; border: none; transform: scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4); }
-        .btn-wrapper.recording::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.3); animation: ripple 1.5s infinite ease-out; z-index: 1; }
-        .btn-wrapper.recording::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.15); animation: ripple 1.5s infinite ease-out 0.75s; z-index: 1; }
+        /* Premium SVG Mic Button */
+        .btn { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #0284C7; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 50%; width: 110px; height: 110px; cursor: pointer; position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; }
+        .btn svg { width: 45px; height: 45px; stroke-width: 2px; transition: all 0.3s ease; }
         
-        /* Premium Processing State */
-        .btn.processing { background: #0EA5E9; transform: scale(1); border: none; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4); animation: breathe 1.5s infinite ease-in-out; }
+        /* Interactive States */
+        .btn.recording { background: #EF4444; color: white; border: none; transform: scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4); }
+        .btn-wrapper.recording::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.2); animation: ripple 1.5s infinite ease-out; z-index: 1; }
+        .btn-wrapper.recording::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.1); animation: ripple 1.5s infinite ease-out 0.75s; z-index: 1; }
         
-        @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
-        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .btn.processing { background: #10B981; color: white; transform: scale(1); border: none; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); animation: breathe 1.5s infinite ease-in-out; }
+        
+        @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.7); opacity: 0; } }
+        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
-        .status { margin-top: 40px; font-size: 16px; color: #475569; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s; height: 24px; }
-        .text-out { margin-top: 30px; font-size: 18px; color: #1E293B; min-height: 80px; padding: 20px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; transition: all 0.3s; }
-        .badge { font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 30px; }
+        .status { margin-top: 45px; font-size: 16px; color: #475569; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s; height: 24px; }
+        .text-out { margin-top: 30px; font-size: 18px; color: #1E293B; min-height: 80px; padding: 25px; border-radius: 20px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s; }
+        .badge { font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 30px; display: inline-block; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .connected { color: #059669; background: #D1FAE5; border: 1px solid #A7F3D0; }
         .disconnected { color: #DC2626; background: #FEE2E2; border: 1px solid #FECACA; }
     </style>
 </head>
 <body>
     <div id="connStatus" class="badge disconnected">🔴 Connecting to PC...</div>
-    <h2>⚡ Super Typing</h2>
-    <p>AI Cloud Microphone</p>
+    <h2>Super Typing</h2>
+    <p>Premium Cloud Voice Engine</p>
     
     <div class="btn-wrapper" id="micWrapper">
-        <button class="btn" id="talkBtn" onclick="toggleRecord()">🎙️</button>
+        <button class="btn" id="talkBtn" onclick="toggleRecord()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+            </svg>
+        </button>
     </div>
     <div class="status" id="stat">Tap to start speaking</div>
     <div class="text-out" id="textOut">Super AI will type your voice here...</div>
@@ -56,7 +65,7 @@
         client.on('connect', function () {
             if(sessionId) {
                 document.getElementById('connStatus').className = 'badge connected';
-                document.getElementById('connStatus').innerText = "🟢 Connected to PC";
+                document.getElementById('connStatus').innerText = "🟢 Connected to PC Engine";
             }
         });
 
@@ -76,9 +85,10 @@
                     if (e.results[i].isFinal) {
                         let final_txt = e.results[i][0].transcript;
                         setProcessingState();
+                        // 1. Duplicate Paste Fix: Unique ID added
                         client.publish(topic, JSON.stringify({ type: 'final', text: final_txt, msg_id: Date.now() }));
                         document.getElementById('textOut').innerText = final_txt;
-                        setTimeout(stopRec, 1200);
+                        setTimeout(stopRec, 1000);
                     } else {
                         interim_transcript += e.results[i][0].transcript;
                         document.getElementById('textOut').innerText = interim_transcript;
@@ -91,10 +101,10 @@
         function setProcessingState() {
             try { recognition.stop(); } catch(e){}
             document.getElementById('talkBtn').className = 'btn processing';
-            document.getElementById('talkBtn').innerText = '⏳';
+            document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
             document.getElementById('micWrapper').className = 'btn-wrapper';
-            document.getElementById('stat').innerText = "⚙️ Super AI is typing...";
-            document.getElementById('stat').style.color = "#0284C7";
+            document.getElementById('stat').innerText = "✨ Super AI is processing...";
+            document.getElementById('stat').style.color = "#10B981";
         }
 
         function toggleRecord() {
@@ -102,7 +112,7 @@
             if (!isRec) {
                 try { recognition.start(); } catch(e){}
                 document.getElementById('talkBtn').className = 'btn recording';
-                document.getElementById('talkBtn').innerText = '🎙️';
+                document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
                 document.getElementById('micWrapper').className = 'btn-wrapper recording';
                 document.getElementById('stat').innerText = '✨ Listening...';
                 document.getElementById('stat').style.color = "#EF4444";
@@ -110,13 +120,13 @@
                 isRec = true;
             } else {
                 setProcessingState();
-                setTimeout(stopRec, 1000); // Simulate processing empty cancel
+                setTimeout(stopRec, 800);
             }
         }
         
         function stopRec() {
             document.getElementById('talkBtn').className = 'btn';
-            document.getElementById('talkBtn').innerText = '🎙️';
+            document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
             document.getElementById('micWrapper').className = 'btn-wrapper';
             document.getElementById('stat').innerText = 'Tap to start speaking';
             document.getElementById('stat').style.color = "#475569";
