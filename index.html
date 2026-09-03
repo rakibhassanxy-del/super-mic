@@ -3,53 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Typing - Premium Cloud Mic</title>
+    <title>Super Typing - AI Mic</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        /* Glassy Premium Light Theme */
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F1F5F9; color: #0F172A; text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
-        h2 { color: #0F172A; margin-bottom: 5px; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; }
-        p { color: #64748B; font-size: 15px; margin-bottom: 60px; font-weight: 500; }
+        :root { --primary: #0284C7; --bg: #F0FDF4; --surface: #FFFFFF; --text: #0F172A; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 90vh; margin: 0; }
+        h2 { color: var(--primary); font-weight: 800; font-size: 26px; margin-bottom: 5px; }
+        p { color: #64748B; font-size: 14px; font-weight: 500; margin-bottom: 40px; }
         
         .btn-wrapper { position: relative; width: 140px; height: 140px; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
-        
-        /* Premium SVG Mic Button */
-        .btn { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #0284C7; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 50%; width: 110px; height: 110px; cursor: pointer; position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; }
-        .btn svg { width: 45px; height: 45px; stroke-width: 2px; transition: all 0.3s ease; }
-        
-        /* Interactive States */
-        .btn.recording { background: #EF4444; color: white; border: none; transform: scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4); }
-        .btn-wrapper.recording::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.2); animation: ripple 1.5s infinite ease-out; z-index: 1; }
-        .btn-wrapper.recording::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.1); animation: ripple 1.5s infinite ease-out 0.75s; z-index: 1; }
-        
-        .btn.processing { background: #10B981; color: white; transform: scale(1); border: none; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); animation: breathe 1.5s infinite ease-in-out; }
-        
-        @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.7); opacity: 0; } }
-        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        .btn { background: var(--surface); border: 2px solid #E2E8F0; border-radius: 50%; width: 110px; height: 110px; cursor: pointer; position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; }
+        .btn svg { width: 45px; height: 45px; fill: #475569; transition: fill 0.3s; }
 
-        .status { margin-top: 45px; font-size: 16px; color: #475569; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s; height: 24px; }
-        .text-out { margin-top: 30px; font-size: 18px; color: #1E293B; min-height: 80px; padding: 25px; border-radius: 20px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.6); transition: all 0.3s; }
-        .badge { font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 30px; display: inline-block; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        /* Listening State */
+        .btn.recording { background: #FFFFFF; border-color: #EF4444; transform: scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.2); }
+        .btn.recording svg { fill: #EF4444; }
+        .btn-wrapper.recording::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(239, 68, 68, 0.15); animation: pulse 1.5s infinite ease-out; z-index: 1; }
+        
+        /* Processing State */
+        .btn.processing { background: #FFFFFF; border-color: #0284C7; transform: scale(1); box-shadow: 0 10px 25px rgba(2, 132, 199, 0.2); animation: breathe 1.5s infinite; }
+        .btn.processing svg { fill: #0284C7; }
+
+        @keyframes pulse { 0% { transform: scale(0.85); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .status { margin-top: 35px; font-size: 15px; color: #64748B; font-weight: 600; height: 24px; transition: color 0.3s; }
+        .text-out { margin-top: 25px; font-size: 17px; color: #1E293B; min-height: 80px; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; transition: all 0.3s; }
+        .badge { font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 25px; }
         .connected { color: #059669; background: #D1FAE5; border: 1px solid #A7F3D0; }
         .disconnected { color: #DC2626; background: #FEE2E2; border: 1px solid #FECACA; }
     </style>
 </head>
 <body>
     <div id="connStatus" class="badge disconnected">🔴 Connecting to PC...</div>
-    <h2>Super Typing</h2>
-    <p>Premium Cloud Voice Engine</p>
+    <h2>⚡ Super Typing</h2>
+    <p>Premium Cloud Microphone</p>
     
     <div class="btn-wrapper" id="micWrapper">
         <button class="btn" id="talkBtn" onclick="toggleRecord()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="22"></line>
+            <!-- SVG Premium Mic Icon -->
+            <svg id="micIcon" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
             </svg>
         </button>
     </div>
     <div class="status" id="stat">Tap to start speaking</div>
-    <div class="text-out" id="textOut">Super AI will type your voice here...</div>
+    <div class="text-out" id="textOut">Super AI is ready to type...</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -65,12 +64,16 @@
         client.on('connect', function () {
             if(sessionId) {
                 document.getElementById('connStatus').className = 'badge connected';
-                document.getElementById('connStatus').innerText = "🟢 Connected to PC Engine";
+                document.getElementById('connStatus').innerText = "🟢 Securely Connected";
             }
         });
 
         let recognition;
         let isRec = false;
+
+        // SVG Paths for states
+        const svgMic = '<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>';
+        const svgProcess = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>';
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -85,10 +88,9 @@
                     if (e.results[i].isFinal) {
                         let final_txt = e.results[i][0].transcript;
                         setProcessingState();
-                        // 1. Duplicate Paste Fix: Unique ID added
                         client.publish(topic, JSON.stringify({ type: 'final', text: final_txt, msg_id: Date.now() }));
                         document.getElementById('textOut').innerText = final_txt;
-                        setTimeout(stopRec, 1000);
+                        setTimeout(stopRec, 800);
                     } else {
                         interim_transcript += e.results[i][0].transcript;
                         document.getElementById('textOut').innerText = interim_transcript;
@@ -101,10 +103,10 @@
         function setProcessingState() {
             try { recognition.stop(); } catch(e){}
             document.getElementById('talkBtn').className = 'btn processing';
-            document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+            document.getElementById('micIcon').innerHTML = svgProcess;
             document.getElementById('micWrapper').className = 'btn-wrapper';
-            document.getElementById('stat').innerText = "✨ Super AI is processing...";
-            document.getElementById('stat').style.color = "#10B981";
+            document.getElementById('stat').innerText = "⚙️ Super AI is typing...";
+            document.getElementById('stat').style.color = "#0284C7";
         }
 
         function toggleRecord() {
@@ -112,24 +114,24 @@
             if (!isRec) {
                 try { recognition.start(); } catch(e){}
                 document.getElementById('talkBtn').className = 'btn recording';
-                document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
+                document.getElementById('micIcon').innerHTML = svgMic;
                 document.getElementById('micWrapper').className = 'btn-wrapper recording';
-                document.getElementById('stat').innerText = '✨ Listening...';
+                document.getElementById('stat').innerText = '✨ Listening... Speak now';
                 document.getElementById('stat').style.color = "#EF4444";
                 document.getElementById('textOut').innerText = '...';
                 isRec = true;
             } else {
                 setProcessingState();
-                setTimeout(stopRec, 800);
+                setTimeout(stopRec, 1000); 
             }
         }
         
         function stopRec() {
             document.getElementById('talkBtn').className = 'btn';
-            document.getElementById('talkBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
+            document.getElementById('micIcon').innerHTML = svgMic;
             document.getElementById('micWrapper').className = 'btn-wrapper';
             document.getElementById('stat').innerText = 'Tap to start speaking';
-            document.getElementById('stat').style.color = "#475569";
+            document.getElementById('stat').style.color = "#64748B";
             isRec = false;
         }
     </script>
